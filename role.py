@@ -72,7 +72,6 @@ class Inventory:
         self.equipped_weapon = self.none_weapon
         self.equipped_armor = self.none_armor
         self.__inventory={}
-        return self
    
     def set_in_inventory(self,thing):
         obj=tuple(thing.keys())[0]
@@ -131,7 +130,7 @@ class Character(pygame.sprite.Sprite, Inventory):
         self.xp_bonus = 1
         self.next_level = int(10 * 1.1 ** self.xp_level)
         self.total_xp = int(self.xp + sum([10 * 1.1 ** i for i in range(self.xp_level)]))
-        self.inventory = Inventory.__init__(self)
+        Inventory.__init__(self)
 
     # detects if there is an obstacle where you want to walk or a character. If no, the method will move the character by x and y.
     def collisions_tests(self, x, y):
