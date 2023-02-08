@@ -69,27 +69,47 @@ class Inventory:
     none_weapon = {'name': 'Nothing', 'atk': 0}
     none_armor = {'name': 'None', 'def': 0}
     def __init__(self):
-        self.equipped_weapon = self.none_weapon
-        self.equipped_armor = self.none_armor
+        self.equipped_weapon = self.none_weapon.copy()
+        self.equipped_armor = self.none_armor.copy()
         self.__inventory={}
    
-    def set_in_inventory(self,thing):
-        obj=tuple(thing.keys())[0]
-        assert "quantity" in thing[obj], 'need a "quantity" key for each object in the inventory !'
-        if obj not in self.__inventory:
-            self.__inventory.update(thing)
-        else:
-            for i in self.__inventory[obj]:
-                if i in thing[obj]:
-                    if i=="quantity":
-                        self.__inventory[obj][i]+=thing[obj][i]
-                    else:
-                        self.__inventory[obj][i]=thing[obj][i]
+    def add_to_inventory(self,items):
+        """thing : {object_name1:{attribute1:value,attribute2:value,...},object_name2:{...},...}"""
+        for obj in items.keys():
+            # add the object in the inventory if it is not already inside
+            if obj not in self.__inventory:
+                # add a "quantity" parameter to the object if it don't have already one
+                if "quantity" not in items[obj]:
+                    items[obj]["quantity"]=1
+                self.__inventory.update({obj:items[obj]})
+    
+    def add_to_items(self,items):
+        """allow to increase (or decrease with negative values) some parameters of items in inventory (quantity, ...)"""
+        for item in items.keys():
+            if item not in self.__inventory:
+                self.add_to_inventory({item:items[item]})
+            for i in self.__inventory[item]:
+                if i in items[item]:
+                    self.__inventory[item][i]+=items[item][i]
+    
+    def set_to_items(self,items):
+        """allow to set some parameters of items in inventory (quantity, ...)"""
+        for item in items.keys():
+            if item not in self.__inventory:
+                self.add_to_inventory({item:items[item]})
+            for i in self.__inventory[item]:
+                if i in items[item]:
+                    self.__inventory[item][i]=items[item][i]
    
     def is_in_inventory(self,thing):
+        """return a bool : True if thing is the name of an item in the inventory, False else"""
         return thing in self.__inventory
    
-    def remove_in_inventory(self,thing):
+    def remove_to_inventory(self,thing):
+        """
+        thing is the name of an item in the inventory
+        remove 1 to thing "quantity" parameter
+        """
         if self.is_in_inventory(thing):
             inventory=self.__inventory[thing]
             self.__inventory[thing]["quantity"]-=1
@@ -98,10 +118,11 @@ class Inventory:
 
 
     def get_inventory(self):
+        """Return the inventory"""
         return self.__inventory
 
 
-class Character(pygame.sprite.Sprite):
+class Character(pygame.sprite.Sprite,Inventory):
     '''The main class where start all the characters : Magicians, Warriors,... And even the main character !'''
 
     def __init__(self, position, size, img, collisions, name, life, defense, attack, xp, xp_level, sens=False):
@@ -130,7 +151,7 @@ class Character(pygame.sprite.Sprite):
         self.xp_bonus = 1
         self.next_level = int(10 * 1.1 ** self.xp_level)
         self.total_xp = int(self.xp + sum([10 * 1.1 ** i for i in range(self.xp_level)]))
-        self.inventory=Inventory.__init__(self)
+        Inventory.__init__(self)
 
     # detects if there is an obstacle where you want to walk or a character. If no, the method will move the character by x and y.
     def collisions_tests(self, x, y):
@@ -203,7 +224,7 @@ class Character(pygame.sprite.Sprite):
         if critic:
             damage_bonus *= 1.5
         damage = self.calculate_damage(opponent, attack_multiplier, damage_bonus)
-        print(damage)
+        #print(damage)
         opponent.remove_life(damage)
 
         if isinstance(self, Magician):
@@ -219,7 +240,7 @@ class Character(pygame.sprite.Sprite):
 
     # attacker_attack, defender_defense, attacker_level, defender_level, attack_multiplier, damage_bonus):
     def calculate_damage(self, other, attack_multiplier, damage_bonus):
-        print(self.attack, other.defense)
+        #print(self.attack, other.defense)
         level_ratio = (self.xp_level + 100) / (self.xp_level + other.xp_level + 200)
         damage = ((((2 * (self.xp_level + 50)) / 100) * (self.attack / (other.defense + 100)) * attack_multiplier) + 2) * damage_bonus
         damage *= level_ratio
@@ -540,6 +561,8 @@ load_tiles(tiles)  # load images
 
 perso = Magician([1, 3], TILE_SIZE, 'data/perso.png', collisions, 'Théodore', 10, 200, 10, 10, 5, 1)
 # perso = Warrior([1,1],TILE_SIZE,'data/perso.png',collisions,'Théodore',1,200,0,0,15)
+perso.equipped_weapon={"name":"epee","atk":200}
+perso.equipped_armor={"name":"armure en diamant","def":200}
 perso2 = Magician([3, 5], TILE_SIZE, 'data/perso.png', collisions, 'Magician', 100, 200, 60, 70, 288, 25, sens=True)
 perso5 = Magician([2, 5], TILE_SIZE, 'data/perso.png', collisions, 'Johan', 200, 500, 80, 90, 641, 200)
 perso3 = Character([3, 7], TILE_SIZE, 'data/perso.png', collisions, 'Inconnu.txt', 13, 22, 15, 2, 2)
