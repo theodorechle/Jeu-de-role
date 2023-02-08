@@ -17,10 +17,11 @@ from time import monotonic
 
 # variables of the level
 # number of tiles to change (here from 00.png to 26.png) 27 in total !!
+GLOBAL_FPS = 60
 NB_TILES = 666
 TILE_SIZE = 50   # definition of the drawing (square)
-length = 8       # height of the level
-width = 8       # length of the level
+length = 10       # height of the level
+width = 10       # length of the level
 tiles = []       # list of tiles images
 clock = pygame.time.Clock()
 
@@ -28,60 +29,71 @@ clock = pygame.time.Clock()
 # definition of the level
 
 # the tiles number
-level = [[23,  24,  24,  24,  24,  24,  24,  25],
-         [189, 189, 171, 47,  47,  47,  47,  48],
-         [46,  47,  187, 47,  47,  47,  47,  48],
-         [46,  118, 217, 120, 47,  47,  47,  48],
-         [46,  141, 142, 143, 47,  47,  47,  48],
-         [46,  164, 165, 166, 47,  47,  47,  48],
-         [506, 507, 507, 507, 507, 507, 507, 508],
-         [529, 486, 486, 486, 486, 486, 486, 531]]
+level = [[23,  24,  24,  24,  24,  203, 108, 108, 108, 206],
+         [46,  47,  47,  47,  47,  222, 30,  31,  32,  222],
+         [46,  47,  47,  47,  47,  270, 76,  77,  78,  270],
+         [189, 189, 124, 189, 189, 189, 189, 189, 194, 48],
+         [46,  47,  187, 47,  47,  47,  47,  47,  47,  48],
+         [46,  118, 217, 120, 47,  47,  47,  47,  47,  48],
+         [46,  141, 142, 143, 47,  47,  47,  47,  47,  48],
+         [46,  164, 165, 166, 47,  47,  47,  47,  47,  48],
+         [506, 507, 507, 507, 507, 507, 507, 507, 507, 508],
+         [529, 486, 486, 486, 486, 486, 486, 486, 486, 531]]
 
 # the additional infos (trees,...)
-decor = [[0,   0,   253, 0,   0,   0,   0,   0],
-         [0,   0,   0,   0,   0,   0,   0,   0],
-         [184, 0,   0,   138, 0,   278, 279, 0],
-         [0,   0,   0,   0,   0,   276, 277, 0],
-         [0,   0,   0,   0,   0,   299, 300, 0],
-         [186, 0,   0,   0,   0,   0,   0,   0],
-         [0,   0,   0,   0,   0,   0,   0,   0],
-         [0,   0,   0,   0,   0,   0,   0,   0]]
+decor = [[0,   0,   253, 0,   295, 0,   112, 0,   0,   0],
+         [0,   0,   0,   0,   295, 0,   0,   0,   0,   0],
+         [0,   0,   0,   0,   295, 0,   0,   0,   0,   0],
+         [0,   0,   0,   0,   318, 273, 319, 273, 319, 273],
+         [184, 0,   0,   138, 0,   278, 279, 0,   0,   0],
+         [0,   0,   0,   0,   0,   276, 277, 0,   0,   0],
+         [0,   0,   0,   0,   0,   299, 300, 0,   0,   0],
+         [186, 0,   0,   0,   0,   0,   0,   0,   0,   0],
+         [0,   0,   0,   0,   0,   0,   0,   0,   0,   0],
+         [0,   0,   0,   0,   0,   0,   0,   0,   0,   0]]
 
 # collisions with the decor
-collisions = [[0,  0,  1,  0,  0,  0,  0,  0],
-              [0,  0,  0,  0,  0,  0,  0,  0],
-              [1,  0,  0,  1,  0,  1,  1,  0],
-              [0,  0,  0,  0,  0,  1,  1,  0],
-              [0,  0,  0,  0,  0,  1,  1,  0],
-              [0,  0,  0,  0,  0,  0,  0,  0],
-              [0,  0,  0,  0,  0,  0,  0,  0],
-              [0,  1,  1,  1,  1,  1,  1,  0]]
+collisions = [[0,  0,  1,  0,  0,  1,  1,  1,  1,  1],
+              [0,  0,  0,  0,  0,  1,  0,  0,  0,  1],
+              [0,  0,  0,  0,  0,  1,  0,  0,  0,  1],
+              [0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+              [1,  0,  0,  1,  0,  1,  1,  0,  0,  0],
+              [0,  0,  0,  0,  0,  1,  1,  0,  0,  0],
+              [0,  0,  0,  0,  0,  1,  1,  0,  0,  0],
+              [0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+              [0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+              [0,  1,  1,  1,  1,  1,  1,  1,  1,  0]]
 
 
 class Character(pygame.sprite.Sprite):
     '''The main class where start all the characters : Magicians, Warriors,... And even the main character !'''
 
-    def __init__(self, position, size, img, collisions, name, life, xp, xp_level, defense, sens=False):
+    def __init__(self, position, size, img, collisions, name, life, defense, attack, xp, xp_level, sens=False):
         super().__init__()
         self.img = pygame.transform.scale(pygame.image.load(img), (size, size))
         self.image = self.img.copy()
         self.rect = self.image.get_rect()
         self.size = size
+        self.sens = sens
+
         self.collisions = collisions
         self.x, self.y = position
         self.rect.x = self.x * size
         self.rect.y = self.y * size
+
         self.name = name
         self.life = life
-        self.maxLife = life
-        self.xp = xp
-        self.xp_level = xp_level
         self.defense = defense
-        self.sens = sens
+        self.attack = attack
+        
+        self.maxLife = life
         self.damage_bonus = 1
+        
+        self.xp_level = xp_level
+        self.xp = xp
         self.xp_bonus = 1
-        self.attack = 1
-        self.next_level = 10
+        self.next_level = int(10 * 1.1 ** self.xp_level)
+        self.total_xp = int(self.xp + sum([10 * 1.1 ** i for i in range(self.xp_level)]))
 
     # detects if there is an obstacle where you want to walk or a character. If no, the method will move the character by x and y.
     def collisions_tests(self, x, y):
@@ -114,14 +126,16 @@ class Character(pygame.sprite.Sprite):
 
     def up_xp(self, xp):
         self.xp += round(xp)
+        self.total_xp += round(xp)
         while self.xp >= self.next_level:
             self.xp_level += 1
             self.xp -= round(self.next_level)
             self.next_level = round(self.next_level * 1.1)
             self.maxLife += 2
-            self.attack += 5
-            self.defense += 3
-            if isinstance(self,Magician):
+            self.life += 2
+            self.attack += round(5 + (0.005 * self.attack))
+            self.defense += round(4 + (0.005 * self.defense))
+            if isinstance(self, Magician):
                 self.increase_mana()
             elif isinstance(self, Warrior):
                 self.increase_strength()
@@ -140,17 +154,19 @@ class Character(pygame.sprite.Sprite):
         self.rect.y = self.y * self.size
         self.image = pygame.transform.flip(self.img.copy(), True, False) if self.sens else self.img.copy()
 
-    def fight(self, opponent, critic = False, attack_multiplier = 100):
+    def fight(self, opponent, critic=False, attack_multiplier=100):
+        damage_bonus = 1
         if isinstance(self, Magician):
             if self.mana > 1:
-                attack_multiplier += 2 * self.xp_level
+                damage_bonus += 0.5
 
         elif isinstance(self, Warrior):
-            attack_multiplier += self.xp_level
+            damage_bonus += self.force * 0.05
 
         if critic:
-            attack_multiplier *= 1.5
-        damage = self.calculate_damage(opponent, attack_multiplier)
+            damage_bonus *= 1.5
+        damage = self.calculate_damage(opponent, attack_multiplier, damage_bonus)
+        print(damage)
         opponent.remove_life(damage)
 
         if isinstance(self, Magician):
@@ -159,21 +175,22 @@ class Character(pygame.sprite.Sprite):
 
         if opponent.is_dead():
             # gain xp and strength if the opponent is dead
-            self.up_xp(opponent.xp_level * 2.3 * self.xp_bonus)
-            if isinstance(self,Magician):
+            self.up_xp(opponent.total_xp * 0.9 * self.xp_bonus)
+            if isinstance(self, Magician):
                 self.add_mana(self.maxMana // 2)
         return damage, critic
 
     # attacker_attack, defender_defense, attacker_level, defender_level, attack_multiplier, damage_bonus):
-    def calculate_damage(self, other, attack_multiplier):
-        level_ratio = (self.xp_level + 150) / (self.xp_level + other.xp_level + 200)
-        damage = ((((2 * (self.xp_level + 100)) / 100) * (self.attack / (other.defense + 50)) * attack_multiplier) + 2) * self.damage_bonus
+    def calculate_damage(self, other, attack_multiplier, damage_bonus):
+        print(self.attack, other.defense)
+        level_ratio = (self.xp_level + 100) / (self.xp_level + other.xp_level + 200)
+        damage = ((((2 * (self.xp_level + 50)) / 100) * (self.attack / (other.defense + 100)) * attack_multiplier) + 2) * damage_bonus
         damage *= level_ratio
-        
+
         # Generates a random number between 0.8 and 1.2
         variation = uniform(0.8, 1.2)
         damage *= variation
-        
+
         if damage < 1:
             damage = 1  # guarantees the attacker to do at least 1 damage regardless of the level difference
         return round(damage)
@@ -181,8 +198,8 @@ class Character(pygame.sprite.Sprite):
 class Warrior(Character):
     '''It's a character who have a particularity : strength. If you won a fight, it increases. It add power to your attacks.'''
 
-    def __init__(self, position, size, img, collisions, name, strength, life, xp, xp_level, defense, sens=False):
-        super().__init__(position, size, img, collisions, name, life, xp, xp_level, defense, sens)
+    def __init__(self, position, size, img, collisions, name, strength, life, defense, attack, xp, xp_level, sens=False):
+        super().__init__(position, size, img, collisions, name, life, defense, attack, xp, xp_level, sens)
         self.force = strength
         self.critic = 2.5
 
@@ -195,8 +212,8 @@ class Magician(Character):
     However, each time you hurt your opponent, you will lose a part of your mana. If your mana drops to 0, you just inflict normal damage.
     After each figth you will regain, the half of your maximum of mana.'''
 
-    def __init__(self, position, size, img, collisions, name, mana, life, xp, xp_level, defense, sens=False):
-        super().__init__(position, size, img, collisions, name, life, xp, xp_level, defense, sens)
+    def __init__(self, position, size, img, collisions, name, mana, life, defense, attack, xp, xp_level, sens=False):
+        super().__init__(position, size, img, collisions, name, life, defense, attack, xp, xp_level, sens)
         self.maxMana = mana
         self.mana = mana
         self.critic = 3
@@ -216,8 +233,7 @@ class Backboard(pygame.sprite.Sprite):
     def __init__(self, position, size, img, text) -> None:
         super().__init__()
 
-        self.image = pygame.transform.scale(
-            pygame.image.load(img), (TILE_SIZE, TILE_SIZE))
+        self.image = pygame.transform.scale(pygame.image.load(img), (TILE_SIZE, TILE_SIZE))
         self.rect = self.image.get_rect()
         self.size = size
         self.x, self.y = position
@@ -239,10 +255,12 @@ class Backboard(pygame.sprite.Sprite):
             for e in pygame.event.get():
                 if e.type == pygame.QUIT:
                     return
+
                 if e.type == pygame.KEYDOWN:
                     if e.key == pygame.K_ESCAPE or e.key == pygame.K_RETURN:
                         return
-            clock.tick(60)
+
+            clock.tick(GLOBAL_FPS)
             pygame.display.flip()
 
 
@@ -267,7 +285,7 @@ class Fight:
         self.write_text('VS', 0, TILE_SIZE * width, pos='center')
         self.write_text(self.f2.name, 0, TILE_SIZE * width, pos='right')
 
-    def write_infos(self, results = None):
+    def write_infos(self, results=None):
         '''
         Write all the fight infos like PV, XP, Shield, Mana, Damages...
         '''
@@ -277,20 +295,21 @@ class Fight:
         write_text(f'{str(self.f2.life)}/{str(self.f2.maxLife)} PV', 0, TILE_SIZE * width + self.text_size, font, '#EE3333', pos='right')
         write_text(f'{str(self.f1.xp)}/{str(self.f1.next_level)} XP', 0, TILE_SIZE * width + text_size * 2, font, '#33EE33')
         write_text(f'{str(self.f1.xp_level)} LEVELS', 0, TILE_SIZE * width + text_size * 3, font, '#33EE33')
-        write_text(f'{str(self.f2.xp)}/{str(self.f2.next_level)} XP', 0, TILE_SIZE * width + text_size * 2, font, '#33EE33',pos='right')
-        write_text(f'{str(self.f2.xp_level)} LEVELS', 0, TILE_SIZE * width + text_size * 3,font, '#33EE33', pos='right')
+        write_text(f'{str(self.f2.xp)}/{str(self.f2.next_level)} XP', 0, TILE_SIZE * width + text_size * 2, font, '#33EE33', pos='right')
+        write_text(f'{str(self.f2.xp_level)} LEVELS', 0, TILE_SIZE * width + text_size * 3, font, '#33EE33', pos='right')
         write_text(f'{str(self.f1.defense)} Shield', 0, TILE_SIZE * width + self.text_size * 4, font, '#3333EE')
         write_text(f'{str(self.f2.defense)} Shield', 0, TILE_SIZE * width + self.text_size * 4, font, '#3333EE', pos='right')
+
         for i, f in enumerate([self.f1, self.f2]):
             if isinstance(f, Warrior):
-                write_text(f'{str(f.force)} Strength', 0, TILE_SIZE * width + self.text_size * 5,font, '#EEA500', pos=('left'if not i else 'right'))
+                write_text(f'{str(f.force)} Strength', 0, TILE_SIZE * width + self.text_size * 5, font, '#EEA500', pos=('left' if not i else 'right'))
             elif isinstance(f, Magician):
-                write_text(f'{str(f.mana)} Mana', 0, TILE_SIZE * width + self.text_size * 5,font, '#EEEE33', pos=('left'if not i else 'right'))
+                write_text(f'{str(f.mana)} Mana', 0, TILE_SIZE * width + self.text_size * 5, font, '#EEEE33', pos=('left' if not i else 'right'))
+
         if results != None:
-            write_text(
-                '-' + str(results[0]) + ' PV', 0, TILE_SIZE * width + self.text_size * 6,font, '#FF3333', pos='center')
+            write_text('-' + str(results[0]) + ' PV', 0, TILE_SIZE * width + self.text_size * 6, font, '#FF3333', pos='center')
             if results[1]:
-                write_text('CRITIC !', 0, TILE_SIZE * width + self.text_size * 7,font, pos='center')
+                write_text('CRITIC !', 0, TILE_SIZE * width + self.text_size * 7, font, pos='center')
 
     def duel(self):
         '''
@@ -304,6 +323,7 @@ class Fight:
         attack = 0
         critic = False
         t = 0
+
         while True:
             if t < monotonic():
                 # Check if the opponent is dead
@@ -438,6 +458,7 @@ def write_main_character_infos(main_character, text_size):
     write_text(f'{str(main_character.xp)}/{str(main_character.next_level)} XP', 0, TILE_SIZE * width + text_size * 2.5, font2, '#33EE33', pos='center')
     write_text(f'{str(main_character.xp_level)} LEVELS', 0, TILE_SIZE * width + text_size * 4, font2, '#33EE33', pos='center')
     write_text(f'{str(main_character.defense)} Shield', 0, TILE_SIZE * width + text_size * 5.5, font2, '#3333EE', pos='center')
+
     if isinstance(main_character, Warrior):
         write_text(f'{str(main_character.force)} Strength', 0, TILE_SIZE * width + text_size * 7, font2, '#EEA500', pos='center')
     elif isinstance(main_character, Magician):
@@ -480,17 +501,17 @@ def display_level(level):
 window.fill((0, 0, 0))   # clear the window
 load_tiles(tiles)  # load images
 
-perso = Magician([1, 1], TILE_SIZE, 'data/perso.png', collisions, 'Théodore', 10, 200, 5, 0, 20)
+perso = Magician([1, 3], TILE_SIZE, 'data/perso.png', collisions, 'Théodore', 10, 200, 10, 10, 5, 1)
 # perso = Warrior([1,1],TILE_SIZE,'data/perso.png',collisions,'Théodore',1,200,0,0,15)
-perso2 = Magician([3, 3], TILE_SIZE, 'data/perso.png', collisions, 'Johan', 100, 50, 53, 200, 100, sens=True)
-perso5 = Magician([2, 3], TILE_SIZE, 'data/perso.png', collisions, 'Magician', 20, 500, 53, 200, 100)
-perso3 = Character([3, 5], TILE_SIZE, 'data/perso.png', collisions, 'Inconnu.txt', 13, 2, 2, 30)
-perso4 = Warrior([1, 3], TILE_SIZE, 'data/perso.png', collisions, 'Guerrier', 10, 15, 2, 3, 10)
-perso6 = Warrior([1, 4], TILE_SIZE, 'data/perso.png', collisions, 'Warrior', 20, 15, 2, 17, 10)
+perso2 = Magician([3, 5], TILE_SIZE, 'data/perso.png', collisions, 'Magician', 100, 200, 60, 70, 288, 25, sens=True)
+perso5 = Magician([2, 5], TILE_SIZE, 'data/perso.png', collisions, 'Johan', 200, 500, 80, 90, 641, 200)
+perso3 = Character([3, 7], TILE_SIZE, 'data/perso.png', collisions, 'Inconnu.txt', 13, 22, 15, 2, 2)
+perso4 = Warrior([1, 5], TILE_SIZE, 'data/perso.png', collisions, 'Guerrier', 10, 20, 15, 5, 2, 3)
+perso6 = Warrior([1, 6], TILE_SIZE, 'data/perso.png', collisions, 'Warrior', 15, 30, 20, 10, 45, 17)
 
 
-backboard = Backboard([3, 4], TILE_SIZE, 'data/99.png', ['Salut, je suis un', 'panneau publicitaire !', 'La publicité du jour :',
-                      "Aujourd'hui seulement!", '-70% sur tout les produits', 'Johan & co.', '', 'Une offre à ne pas rater !!'])
+backboard = Backboard([3, 6], TILE_SIZE, "data/99.png", ["Salut, je suis un", "panneau publicitaire !", "La publicité du jour :",
+                      "Aujourd'hui seulement!", "-70% sur tout les produits", "Johan & co.", "", "Une offre à ne pas rater !!"])
 
 
 adventurers = pygame.sprite.Group()
@@ -548,5 +569,5 @@ while loop == True:
     billboard.draw(window)
     write_main_character_infos(perso,text_size)
     pygame.display.flip()
-    clock.tick(60)
+    clock.tick(GLOBAL_FPS)
 pygame.quit()
