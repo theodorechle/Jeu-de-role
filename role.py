@@ -65,6 +65,42 @@ collisions = [[0,  0,  1,  0,  0,  1,  1,  1,  1,  1],
               [0,  1,  1,  1,  1,  1,  1,  1,  1,  0]]
 
 
+class Inventory:
+    none_weapon = {'name': 'Nothing', 'atk': 0}
+    none_armor = {'name': 'None', 'def': 0}
+    def __init__(self):
+        self.equipped_weapon = self.none_weapon
+        self.equipped_armor = self.none_armor
+        self.__inventory={}
+   
+    def set_in_inventory(self,thing):
+        obj=tuple(thing.keys())[0]
+        assert "quantity" in thing[obj], 'need a "quantity" key for each object in the inventory !'
+        if obj not in self.__inventory:
+            self.__inventory.update(thing)
+        else:
+            for i in self.__inventory[obj]:
+                if i in thing[obj]:
+                    if i=="quantity":
+                        self.__inventory[obj][i]+=thing[obj][i]
+                    else:
+                        self.__inventory[obj][i]=thing[obj][i]
+   
+    def is_in_inventory(self,thing):
+        return thing in self.__inventory
+   
+    def remove_in_inventory(self,thing):
+        if self.is_in_inventory(thing):
+            inventory=self.__inventory[thing]
+            self.__inventory[thing]["quantity"]-=1
+            if inventory["quantity"]==0:
+                self.__inventory.pop(thing)
+
+
+    def get_inventory(self):
+        return self.__inventory
+
+
 class Character(pygame.sprite.Sprite):
     '''The main class where start all the characters : Magicians, Warriors,... And even the main character !'''
 
@@ -94,6 +130,7 @@ class Character(pygame.sprite.Sprite):
         self.xp_bonus = 1
         self.next_level = int(10 * 1.1 ** self.xp_level)
         self.total_xp = int(self.xp + sum([10 * 1.1 ** i for i in range(self.xp_level)]))
+        self.inventory=Inventory.__init__(self)
 
     # detects if there is an obstacle where you want to walk or a character. If no, the method will move the character by x and y.
     def collisions_tests(self, x, y):
