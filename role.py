@@ -122,11 +122,11 @@ class Inventory:
         return self.__inventory
 
 
-class Character(pygame.sprite.Sprite,Inventory):
+class Character(pygame.sprite.Sprite, Inventory):
     '''The main class where start all the characters : Magicians, Warriors,... And even the main character !'''
 
     def __init__(self, position, size, img, collisions, name, life, defense, attack, xp, xp_level, sens=False):
-        super().__init__()
+        pygame.sprite.Sprite.__init__(self)
         self.img = pygame.transform.scale(pygame.image.load(img), (size, size))
         self.image = self.img.copy()
         self.rect = self.image.get_rect()
@@ -590,9 +590,9 @@ billboard.add(backboard)
 
 collide_group = (adventurers, evils, billboard)
 
-for group in (adventurers, evils):
-    for character in group:
-        character.move(0, 0)
+
+perso.set_in_inventory({"Epee":{"damages":50,"quantity":1}})
+
 
 loop = True
 pygame.key.set_repeat(200, 100)
