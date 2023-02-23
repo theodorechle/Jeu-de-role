@@ -7,3 +7,12 @@ Plus à venir.
 English : <br>
 An epic role game, mixing fights (with a formula createdby a flatulent AI) and billboards !
 More to come.
+
+image du jeu : <br>
+![alt text](https://github.com/theodorechle/Jeu-de-role/blob/main/img/Capture%20d’écran%202023-02-08%20180329.png)
+
+image en combat : <br>
+![alt text](https://github.com/theodorechle/Jeu-de-role/blob/main/img/Capture%20d’écran%202023-02-08%20180401.png)
+
+image d'un magnifique panneau publicitaire : <br>
+![alt text](https://github.com/theodorechle/Jeu-de-role/blob/main/img/Capture%20d’écran%202023-02-08%20180512.png)

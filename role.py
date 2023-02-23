@@ -216,7 +216,7 @@ class Character(pygame.sprite.Sprite, Inventory):
         if critic:
             damage_bonus *= 1.5
         damage = self.calculate_damage(opponent, attack_multiplier, damage_bonus)
-        print(damage)
+        #print(damage)
         opponent.remove_life(damage)
 
         if isinstance(self, Magician):
@@ -557,6 +557,8 @@ load_tiles(tiles)  # load images
 
 perso = Magician([1, 3], TILE_SIZE, 'data/perso.png', collisions, 'Théodore', 10, 200, 10, 10, 5, 1)
 # perso = Warrior([1,1],TILE_SIZE,'data/perso.png',collisions,'Théodore',1,200,0,0,15)
+perso.equipped_weapon={"name":"epee","atk":200}
+perso.equipped_armor={"name":"armure en diamant","def":200}
 perso2 = Magician([3, 5], TILE_SIZE, 'data/perso.png', collisions, 'Magician', 100, 200, 60, 70, 288, 25, sens=True)
 perso5 = Magician([2, 5], TILE_SIZE, 'data/perso.png', collisions, 'Johan', 200, 500, 80, 90, 641, 200)
 perso3 = Character([3, 7], TILE_SIZE, 'data/perso.png', collisions, 'Inconnu.txt', 13, 22, 15, 2, 2)
