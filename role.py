@@ -65,40 +65,52 @@ collisions = [[0,  0,  1,  0,  0,  1,  1,  1,  1,  1],
               [0,  1,  1,  1,  1,  1,  1,  1,  1,  0]]
 
 
+class Weapon:
+    def __init__(self, name, attack):
+        self.name = name
+        self.attack = attack
+
+class Armor:
+    def __init__(self, name, defense):
+        self.name = name
+        self.defense = defense
+
 class Inventory:
-    none_weapon = {'name': 'Nothing', 'atk': 0}
-    none_armor = {'name': 'None', 'def': 0}
     def __init__(self):
-        self.equipped_weapon = self.none_weapon
-        self.equipped_armor = self.none_armor
-        self.__inventory={}
+        self.items = {}
+        self.weapon = Weapon("Fist", 0)
+        self.armor = Armor("Clothes", 0)
    
-    def set_in_inventory(self,thing):
-        obj=tuple(thing.keys())[0]
-        assert "quantity" in thing[obj], 'need a "quantity" key for each object in the inventory !'
-        if obj not in self.__inventory:
-            self.__inventory.update(thing)
+    def add_item(self, name, quantity=1, **attributes):
+        if name in self.items:
+            self.items[name]['quantity'] += quantity
         else:
-            for i in self.__inventory[obj]:
-                if i in thing[obj]:
-                    if i=="quantity":
-                        self.__inventory[obj][i]+=thing[obj][i]
-                    else:
-                        self.__inventory[obj][i]=thing[obj][i]
+            self.items[name] = {'quantity': quantity, **attributes}
    
-    def is_in_inventory(self,thing):
-        return thing in self.__inventory
+    def remove_item(self, name, quantity=1):
+        if name in self.items:
+            self.items[name]['quantity'] -= quantity
+            if self.items[name]['quantity'] <= 0:
+                del self.items[name]
+        else:
+            print(f"The item {name} doesn't exist in the inventory.")
    
-    def remove_in_inventory(self,thing):
-        if self.is_in_inventory(thing):
-            inventory=self.__inventory[thing]
-            self.__inventory[thing]["quantity"]-=1
-            if inventory["quantity"]==0:
-                self.__inventory.pop(thing)
+    def equip_weapon(self, name, attack):
+        self.weapon = Weapon(name, attack)
+   
+    def equip_armor(self, name, defense):
+        self.armor = Armor(name, defense)
+   
+    def has_item(self, name):
+        return name in self.items
+   
+    def get_weapon(self):
+        return self.weapon
+   
+    def get_armor(self):
+        return self.armor
 
 
-    def get_inventory(self):
-        return self.__inventory
 
 
 class Character(pygame.sprite.Sprite, Inventory):
@@ -130,6 +142,7 @@ class Character(pygame.sprite.Sprite, Inventory):
         self.xp_bonus = 1
         self.next_level = int(10 * 1.1 ** self.xp_level)
         self.total_xp = int(self.xp + sum([10 * 1.1 ** i for i in range(self.xp_level)]))
+        
         Inventory.__init__(self)
 
     # detects if there is an obstacle where you want to walk or a character. If no, the method will move the character by x and y.
@@ -219,9 +232,10 @@ class Character(pygame.sprite.Sprite, Inventory):
 
     # attacker_attack, defender_defense, attacker_level, defender_level, attack_multiplier, damage_bonus):
     def calculate_damage(self, other, attack_multiplier, damage_bonus):
-        print(self.attack, other.defense)
+        attack = self.attack+self.get_weapon().attack
+        defense = other.defense+other.get_armor().defense
         level_ratio = (self.xp_level + 100) / (self.xp_level + other.xp_level + 200)
-        damage = ((((2 * (self.xp_level + 50)) / 100) * (self.attack / (other.defense + 100)) * attack_multiplier) + 2) * damage_bonus
+        damage = ((((2 * (self.xp_level + 50)) / 100) * (attack / (defense + 100)) * attack_multiplier) + 2) * damage_bonus
         damage *= level_ratio
 
         # Generates a random number between 0.8 and 1.2
@@ -432,6 +446,9 @@ class Actions(Fight):
             if cursor == -1:
                 pygame.draw.rect(window, '#000000', pygame.Rect(0, TILE_SIZE * width + self.text_size, TILE_SIZE * length, TILE_SIZE * 5))
                 return
+        
+        elif False:
+            pass
 
         elif self.c2 in billboard:
             cursor = self.get_action(('Interagir', 'Retour'))
@@ -568,7 +585,8 @@ billboard.add(backboard)
 collide_group = (adventurers, evils, billboard)
 
 
-perso.set_in_inventory({"Epee":{"damages":50,"quantity":1}})
+perso.equip_weapon('arme',100000)
+perso.equip_armor('armure',100000)
 
 
 loop = True
