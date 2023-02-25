@@ -1,5 +1,5 @@
 '''
-Program realised by :
+Program realized by :
 Chailloleau Leclerc Théodore,
 Valentin Johan
 in class of TG4.
@@ -40,7 +40,7 @@ level = [[23,  24,  24,  24,  24,  203, 108, 108, 108, 206],
          [506, 507, 507, 507, 507, 507, 507, 507, 507, 508],
          [529, 486, 486, 486, 486, 486, 486, 486, 486, 531]]
 
-# the additional infos (trees,...)
+# additional info (trees,...)
 decor = [[0,   0,   253, 0,   295, 0,   112, 0,   0,   0],
          [0,   0,   0,   0,   295, 0,   0,   0,   0,   0],
          [0,   0,   0,   0,   295, 0,   0,   0,   0,   0],
@@ -129,7 +129,7 @@ class Inventory:
 
 
 class Character(pygame.sprite.Sprite, Inventory):
-    '''The main class where start all the characters : Magicians, Warriors,... And even the main character !'''
+    '''The main class where all the characters start : Magicians, Warriors,... And even the main character !'''
 
     def __init__(self, position, size, img, collisions, name, life, defense, attack, xp, xp_level, sens=False):
         pygame.sprite.Sprite.__init__(self)
@@ -160,7 +160,7 @@ class Character(pygame.sprite.Sprite, Inventory):
         
         Inventory.__init__(self)
 
-    # detects if there is an obstacle where you want to walk or a character. If no, the method will move the character by x and y.
+    # detects if there is an obstacle where you want to walk or a character. If not, the method will move the character by x and y.
     def collisions_tests(self, x, y):
         if 0 <= self.x + x < len(self.collisions[0]) and 0 <= self.y + y < len(collisions):
             if self.collisions[self.y + y][self.x + x] == 0:
@@ -263,7 +263,7 @@ class Character(pygame.sprite.Sprite, Inventory):
         return round(damage)
 
 class Warrior(Character):
-    '''It's a character who have a particularity : strength. If you won a fight, it increases. It add power to your attacks.'''
+    '''It's a character who has a particularity : strength. If you win a fight, it increases. It add power to your attacks.'''
 
     def __init__(self, position, size, img, collisions, name, strength, life, defense, attack, xp, xp_level, sens=False):
         super().__init__(position, size, img, collisions, name, life, defense, attack, xp, xp_level, sens)
@@ -275,9 +275,9 @@ class Warrior(Character):
 
 
 class Magician(Character):
-    '''This character have mana. It's a resource who inflict more damage to his enemy : two time more than the strength of the warrior !
+    '''This character has mana. It's a resource who inflicts more damage to his enemy : two times more than the strength of the warrior !
     However, each time you hurt your opponent, you will lose a part of your mana. If your mana drops to 0, you just inflict normal damage.
-    After each figth you will regain, the half of your maximum of mana.'''
+    After each fight you will regain, the half of your maximum of mana.'''
 
     def __init__(self, position, size, img, collisions, name, mana, life, defense, attack, xp, xp_level, sens=False):
         super().__init__(position, size, img, collisions, name, life, defense, attack, xp, xp_level, sens)
@@ -440,8 +440,8 @@ class Merchant(pygame.sprite.Sprite):
 
 class Fight:
     '''
-    A class o fight !
-    It managed the fight himself, but also the display of all the fight infos
+    A class of fight !
+    It managed the fight himself, but also the display of all the fight info
     '''
 
     def __init__(self, figther1: Character, figther2: Character):
@@ -452,7 +452,7 @@ class Fight:
     def write_figthers(self):
         '''
         Write the names of the fighters like that :
-        Fighter1    VS   Fighter2
+        Fighter1    VS    Fighter2
         '''
         pygame.draw.rect(window, '#000000', pygame.Rect(0, TILE_SIZE * width, TILE_SIZE * length, TILE_SIZE))
         self.write_text(self.f1.name, 0, TILE_SIZE * width)
@@ -461,7 +461,7 @@ class Fight:
 
     def write_infos(self, results=None):
         '''
-        Write all the fight infos like PV, XP, Shield, Mana, Damages...
+        Write all the fight info like PV, XP, Shield, Mana, Damages...
         '''
         pygame.draw.rect(window, '#000000', pygame.Rect(
             0, TILE_SIZE * width + self.text_size, TILE_SIZE * length, self.text_size * 8))
@@ -488,8 +488,8 @@ class Fight:
     def duel(self):
         '''
         A loop to manage the duel :
-        Attack of the player and riposte of the ennemy !
-        And she call write functions when she need.
+        Attack of the player and riposte of the enemy !
+        And she calls write functions when she needs to.
         '''
         self.write_figthers()
         self.write_infos()
