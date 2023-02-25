@@ -80,6 +80,7 @@ class Inventory:
         self.items = {}
         self.weapon = Weapon("Fist", 0)
         self.armor = Armor("Clothes", 0)
+        self.money = 100
    
     def add_item(self, name, quantity=1, **attributes):
         if name in self.items:
@@ -109,6 +110,20 @@ class Inventory:
    
     def get_armor(self):
         return self.armor
+   
+    def add_money(self, amount):
+        self.money += amount
+   
+    def remove_money(self, amount):
+        if self.money >= amount:
+            self.money -= amount
+            return True
+        else:
+            print("Not enough money to complete the transaction.")
+            return False
+   
+    def get_money(self):
+        return self.money
 
 
 
@@ -226,6 +241,7 @@ class Character(pygame.sprite.Sprite, Inventory):
         if opponent.is_dead():
             # gain xp and strength if the opponent is dead
             self.up_xp(opponent.total_xp * 0.9 * self.xp_bonus)
+            self.add_money(50 + round(5 * opponent.xp_level))
             if isinstance(self, Magician):
                 self.add_mana(self.maxMana // 2)
         return damage, critic
@@ -293,10 +309,10 @@ class Backboard(pygame.sprite.Sprite):
         self.text = text
 
     def interact(self):
-        display_level(level)
-        adventurers.draw(window)
-        evils.draw(window)
-        billboard.draw(window)
+        #display_level(level)
+        #adventurers.draw(window)
+        #evils.draw(window)
+        #billboard.draw(window)
         for i in range(len(self.text)):
             size = font.size(self.text[i])
             x = (TILE_SIZE * length / 2) - size[0] / 2
@@ -313,6 +329,113 @@ class Backboard(pygame.sprite.Sprite):
 
             clock.tick(GLOBAL_FPS)
             pygame.display.flip()
+
+class Merchant(pygame.sprite.Sprite):
+    
+    def __init__(self, position, size, img, *goods, text=[]) -> None:
+        super().__init__()
+        self.image = pygame.transform.scale(pygame.image.load(img), (TILE_SIZE, TILE_SIZE))
+        self.rect = self.image.get_rect()
+        self.size = size
+        self.x, self.y = position
+        self.rect.x = self.x * size
+        self.rect.y = self.y * size
+        self.text = text
+        self.goods = list(goods)
+        self.text_size = TILE_SIZE // 2
+    
+    def display_text(self):
+        for i in range(len(self.text)):
+            size = font.size(self.text[i])
+            x = (TILE_SIZE * length / 2) - size[0] / 2
+            write_text(self.text[i], x, TILE_SIZE * width + TILE_SIZE // 2 * i + 1,font)
+        while True:
+            for e in pygame.event.get():
+                if e.type == pygame.QUIT:
+                    return
+
+                if e.type == pygame.KEYDOWN:
+                    if e.key == pygame.K_ESCAPE or e.key == pygame.K_RETURN:
+                        return
+
+            clock.tick(GLOBAL_FPS)
+            pygame.display.flip()
+
+    def write_act(self, act, cursor, retour=True, info=True, text=[]):
+        pygame.draw.rect(window, '#000000', pygame.Rect(0, TILE_SIZE * width, TILE_SIZE * length, TILE_SIZE * 5))
+        for i in range(len(text)):
+            write_text(text[i], 0, TILE_SIZE * width + self.text_size * 1.5 * i, font2, pos="center")
+        for i, option in enumerate(act):
+            if info:good = option[0]
+            else: good = option
+            write_text(('> ' if i == cursor else '') + good, 0, TILE_SIZE * width + self.text_size * 1.5 * (i + len(text)), font2)
+            if info:
+                write_text(("Attaque: " if option[1]["type"] == Weapon else "Défense: ") + str(option[1]["effect"]), 0, TILE_SIZE * width + self.text_size * 1.5 * (i + len(text)), font2, pos='right')
+        if retour:
+            write_text(('> ' if (len(act) - (1 if not retour else 0)) == cursor else '') + "Retour", 0, TILE_SIZE * width + self.text_size * 1.5 * (len(act) + len(text)), font2)
+
+    def get_cursor(self, *act, text=[], retour=True, info=True):
+        cursor = 0
+        self.write_act(act, cursor, retour, info, text)
+        pygame.event.clear()
+        while True:
+            for event in pygame.event.get():
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_ESCAPE:
+                        pygame.draw.rect(window, '#000000', pygame.Rect(0, TILE_SIZE * width, TILE_SIZE * length, TILE_SIZE * 5))
+                        return len(act) - (1 if not retour else 0)
+
+                    if event.key == pygame.K_RETURN:
+                        pygame.draw.rect(window, '#000000', pygame.Rect(0, TILE_SIZE * width, TILE_SIZE * length, TILE_SIZE * 5))
+                        return cursor
+
+                    elif event.key == pygame.K_UP:
+                        if cursor > 0:
+                            cursor -= 1
+                            self.write_act(act, cursor, retour, info, text)
+
+                    elif event.key == pygame.K_DOWN:
+                        if cursor < len(act) - (1 if not retour else 0):
+                            cursor += 1
+                            self.write_act(act, cursor, retour, info, text)
+            pygame.display.flip()
+            clock.tick(GLOBAL_FPS)
+
+    def validation_achat(self, c1, obj):
+        text = ["vous avez " + str(c1.money) + " monaie", "voulez vous acheter " + str(obj[0]), "pour " + str(obj[1]["cost"]) + " ?"]
+        cursor = self.get_cursor("Oui", "Non", text=text, retour=False, info=False)
+        if cursor == 0:
+            valide = c1.remove_money(obj[1]["cost"])
+            if valide:
+                c1.add_item(obj[0], effect=obj[1]["effect"], type=obj[1]["type"])
+                if obj[1]["type"] == Weapon:
+                    c1.equip_weapon(obj[0], obj[1]["effect"])
+                elif obj[1]["type"] == Armor:
+                    c1.equip_armor(obj[0], obj[1]["effect"])
+                del self.goods[self.goods.index(obj)]
+            else:
+                pygame.draw.rect(window, '#000000', pygame.Rect(0, TILE_SIZE * width, TILE_SIZE * length, TILE_SIZE * 5))
+                write_text("Pas assez d'argent !", 0, TILE_SIZE * width + self.text_size * 1.5 * 3, font2, pos='center')
+                pygame.display.flip()
+                pygame.time.wait(1500)
+                return
+        if cursor == 1:
+            return
+
+    def show_goods(self, c1):
+        cursor = self.get_cursor(*self.goods)
+        if cursor == len(self.goods):
+            return
+        else:
+            obj = self.goods[cursor]
+            self.validation_achat(c1, obj)
+        pygame.event.clear()
+
+    def interact(self, c1):
+        if self.text:
+            self.display_text()
+        self.show_goods(c1)
+        
 
 
 class Fight:
@@ -355,7 +478,7 @@ class Fight:
             if isinstance(f, Warrior):
                 write_text(f'{str(f.force)} Strength', 0, TILE_SIZE * width + self.text_size * 5, font, '#EEA500', pos=('left' if not i else 'right'))
             elif isinstance(f, Magician):
-                write_text(f'{str(f.mana)} Mana', 0, TILE_SIZE * width + self.text_size * 5, font, '#EEEE33', pos=('left' if not i else 'right'))
+                write_text(f'{str(f.mana)} Mana', 0, TILE_SIZE * width + self.text_size * 5, font, '#00DDDD', pos=('left' if not i else 'right'))
 
         if results != None:
             write_text('-' + str(results[0]) + ' PV', 0, TILE_SIZE * width + self.text_size * 6, font, '#FF3333', pos='center')
@@ -380,10 +503,12 @@ class Fight:
                 # Check if the opponent is dead
                 if self.f2.is_dead():
                     evils.remove(self.f2)
+                    pygame.event.clear()
                     return
 
                 # Check if the player is dead
                 elif self.f1.is_dead():
+                    pygame.event.clear()
                     return
 
                 if not attack:
@@ -391,6 +516,7 @@ class Fight:
                         if event.type == pygame.KEYDOWN:
                             if event.key == pygame.K_ESCAPE:
                                 if randint(0, 1):
+                                    pygame.event.clear()
                                     return
 
                                 else:
@@ -447,8 +573,13 @@ class Actions(Fight):
                 pygame.draw.rect(window, '#000000', pygame.Rect(0, TILE_SIZE * width + self.text_size, TILE_SIZE * length, TILE_SIZE * 5))
                 return
         
-        elif False:
-            pass
+        elif self.c2 in merchant:
+            cursor = self.get_action(('Acheter', 'Retour'))
+            if cursor == 0:
+                self.c2.interact(self.c1)
+            if cursor == -1:
+                pygame.draw.rect(window, '#000000', pygame.Rect(0, TILE_SIZE * width + self.text_size, TILE_SIZE * length, TILE_SIZE * 5))
+                return
 
         elif self.c2 in billboard:
             cursor = self.get_action(('Interagir', 'Retour'))
@@ -476,6 +607,9 @@ class Actions(Fight):
         while True:
             for event in pygame.event.get():
                 if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_ESCAPE:
+                        pygame.draw.rect(window, '#000000', pygame.Rect(0, TILE_SIZE * width, TILE_SIZE * length, TILE_SIZE * 5))
+                        return -1
                     if event.key == pygame.K_RETURN:
                         pygame.draw.rect(window, '#000000', pygame.Rect(0, TILE_SIZE * width, TILE_SIZE * length, TILE_SIZE * 5))
                         return cursor
@@ -516,7 +650,9 @@ def write_main_character_infos(main_character, text_size):
     if isinstance(main_character, Warrior):
         write_text(f'{str(main_character.force)} Strength', 0, TILE_SIZE * width + text_size * 7, font2, '#EEA500', pos='center')
     elif isinstance(main_character, Magician):
-        write_text(f'{str(main_character.mana)}/{str(main_character.maxMana)} Mana', 0, TILE_SIZE * width + text_size * 7, font2, '#EEEE33', pos='center')
+        write_text(f'{str(main_character.mana)}/{str(main_character.maxMana)} Mana', 0, TILE_SIZE * width + text_size * 7, font2, '#00DDDD', pos='center')
+    
+    write_text(f'{str(main_character.money)} Money', 0, TILE_SIZE * width + text_size * 8.5, font2, '#EDDE44', pos='center')
 
 
 
@@ -557,22 +693,23 @@ load_tiles(tiles)  # load images
 
 perso = Magician([1, 3], TILE_SIZE, 'data/perso.png', collisions, 'Théodore', 10, 200, 10, 10, 5, 1)
 # perso = Warrior([1,1],TILE_SIZE,'data/perso.png',collisions,'Théodore',1,200,0,0,15)
-perso.equipped_weapon={"name":"epee","atk":200}
-perso.equipped_armor={"name":"armure en diamant","def":200}
 perso2 = Magician([3, 5], TILE_SIZE, 'data/perso.png', collisions, 'Magician', 100, 200, 60, 70, 288, 25, sens=True)
-perso5 = Magician([2, 5], TILE_SIZE, 'data/perso.png', collisions, 'Johan', 200, 500, 80, 90, 641, 200)
-perso3 = Character([3, 7], TILE_SIZE, 'data/perso.png', collisions, 'Inconnu.txt', 13, 22, 15, 2, 2)
 perso4 = Warrior([1, 5], TILE_SIZE, 'data/perso.png', collisions, 'Guerrier', 10, 20, 15, 5, 2, 3)
+perso5 = Magician([2, 5], TILE_SIZE, 'data/perso.png', collisions, 'Johan', 200, 500, 80, 90, 641, 200)
 perso6 = Warrior([1, 6], TILE_SIZE, 'data/perso.png', collisions, 'Warrior', 15, 30, 20, 10, 45, 17)
 
+perso3 = Merchant([6, 1], TILE_SIZE, 'data/perso.png', 
+                    ("épée en carton", {"cost": 20, "effect": 10, "type": Weapon}), ("armure en cuire", {"cost": 50, "effect": 40, "type": Armor}),
+                    ("épée en fer", {"cost": 200, "effect": 190, "type": Weapon}), ("armure en fer", {"cost": 250, "effect": 220, "type": Armor}),
+                    text=["Bonjour et bienvenue chez Johan & co.", "Je me présente, je suis Inconnu.txt", "vendeur officiel de Johan & co.", "Je présume que vous êtes",
+                    "intéressé par la réduction du jour.", "Et bien vous êtes au bon endroit !", "", "Aujourd'hui seulement,", "-0% sur tous les produits !!!", "Ah oui désolé j'ai mis un 7 en trop sur le panneau."])
 
 backboard = Backboard([3, 6], TILE_SIZE, "data/99.png", ["Salut, je suis un", "panneau publicitaire !", "La publicité du jour :",
-                      "Aujourd'hui seulement!", "-70% sur tout les produits", "Johan & co.", "", "Une offre à ne pas rater !!"])
+                      "Aujourd'hui seulement,", "-70% sur tout les produits", "Johan & co.", "", "Une offre à ne pas rater !!!"])
 
 
 adventurers = pygame.sprite.Group()
 adventurers.add(perso)
-adventurers.add(perso3)
 
 evils = pygame.sprite.Group()
 evils.add(perso2)
@@ -584,11 +721,14 @@ evils.add(perso6)
 billboard = pygame.sprite.Group()
 billboard.add(backboard)
 
-collide_group = (adventurers, evils, billboard)
+merchant = pygame.sprite.Group()
+merchant.add(perso3)
+
+collide_group = (adventurers, evils, billboard, merchant)
 
 
-perso.equip_weapon('arme',100000)
-perso.equip_armor('armure',100000)
+#perso.equip_weapon('arme',100000)
+#perso.equip_armor('armure',100000)
 
 
 loop = True
@@ -609,7 +749,7 @@ while loop == True:
             elif event.unicode == 'q':  # Q key to quit
                 loop = False
             elif event.key == pygame.K_RETURN:
-                n = perso.near_people((evils, billboard))
+                n = perso.near_people((evils, billboard, merchant))
                 if n:
                     Actions(perso, n[0])
                 if perso.is_dead():
@@ -618,12 +758,9 @@ while loop == True:
 
     window.fill((0, 0, 0))
     display_level(level)  # display the level
-    adventurers.update()
-    adventurers.draw(window)
-    evils.update()
-    evils.draw(window)
-    billboard.update()
-    billboard.draw(window)
+    for groups in collide_group:
+        groups.update()
+        groups.draw(window)
     write_main_character_infos(perso,text_size)
     pygame.display.flip()
     clock.tick(GLOBAL_FPS)
