@@ -5,7 +5,7 @@ Un jeu de rôle épique, mêlant combats (avec formule créée par une IA flatul
 Plus à venir.
 
 English : <br>
-An epic role game, mixing fights (with a formula createdby a flatulent AI) and billboards !
+An epic role game, mixing fights (with a formula created by a flatulent AI) and billboards !
 More to come.
 
 image du jeu : <br>
